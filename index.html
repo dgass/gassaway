@@ -46,6 +46,7 @@
     mix-blend-mode: difference;
   }
   .cursor.big { width: 40px; height: 40px; }
+  @media (hover: none) { .cursor { display: none; } }
 
   /* PROGRESS */
   #prog {
@@ -387,15 +388,37 @@
   /* MOBILE / NARROW VIEWPORT */
   @media (max-width: 700px) {
     .stop.open .stop-body { max-height: 4000px; }
+
+    /* Hero contact info */
+    .hero-meta-row { font-size: 22px; word-break: break-all; }
+
+    /* Company names */
+    .stop-company { font-size: 36px; }
+
+    /* Reduce left indents so boxes don't overflow */
+    .body-text { padding-left: 16px; font-size: 22px; }
+    .hbox { margin-left: 0; margin-right: 0; }
+    .stats { margin-left: 0; }
+    .pills { margin-left: 0; }
+    .ncont-acq-row { margin-left: 0; flex-direction: column; align-items: flex-start; gap: 4px; }
+    .ncont-co { white-space: normal; font-size: 28px; }
+    .ncont-arrow { white-space: normal; }
+    .stats-icon { margin-left: 0 !important; }
+
+    /* Stop year / role */
+    .stop-year { font-size: 16px; }
+    .stop-role { font-size: 18px; }
+
+    /* Project boxes stacking */
     .hbox-split { flex-direction: column !important; align-items: stretch !important; gap: 1.25rem !important; }
     .hbox-split-text { width: 100%; }
     .hbox-split-media { width: 100% !important; flex-shrink: 1 !important; max-width: 100%; }
     .hbox-split-media > div { max-width: 220px; }
-    .hbox-split-media[style*="width:320px"] > svg,
     .hbox-split-media svg { max-width: 100%; height: auto; }
-    .body-text { font-size: 22px; }
     .hbox-text { font-size: 21px; }
     .hbox-label { font-size: 17px; }
+
+    /* Throughline */
     .throughline-line { font-size: clamp(22px, 6vw, 34px); }
   }
 </style>
@@ -425,7 +448,7 @@
 
 
 <div class="stop boone" id="s1">
-  <div class="stop-header" onclick="toggle('s1')">
+  <div class="stop-header" id="h1">
     <div class="stop-dot-wrap"><div class="stop-dot"></div></div>
     <div class="stop-text">
       <div class="stop-year">2013 – 2018 &nbsp;·&nbsp; Creative Agency</div>
@@ -493,7 +516,7 @@
 
 
 <div class="stop ncont" id="s2">
-  <div class="stop-header" onclick="toggle('s2')">
+  <div class="stop-header" id="h2">
     <div class="stop-dot-wrap"><div class="stop-dot"></div></div>
     <div class="stop-text">
       <div class="stop-year">2018 – 2021 &nbsp;·&nbsp; Governance, Risk, and Compliance SaaS</div>
@@ -522,7 +545,7 @@
 
 
 <div class="stop avid" id="s3">
-  <div class="stop-header" onclick="toggle('s3')">
+  <div class="stop-header" id="h3">
     <div class="stop-dot-wrap"><div class="stop-dot"></div></div>
     <div class="stop-text">
       <div class="stop-year">2021 – 2026 &nbsp;·&nbsp; Fintech / Payments / AI SaaS</div>
@@ -685,18 +708,34 @@ print(<span style="color:#6a9fb5;">f</span><span style="color:#8faa6e;">"Done. {
   window.addEventListener('scroll', reveal, { passive: true });
   reveal();
 
+  // Stop headers — prevent scroll-jump on click
+  ['h1','h2','h3'].forEach(function(hid, i) {
+    var sid = 's' + (i + 1);
+    var header = document.getElementById(hid);
+    if (header) {
+      header.addEventListener('click', function(e) {
+        e.preventDefault();
+        toggle(sid);
+      });
+    }
+  });
+
   // Throughline accordion toggle
   var tlArrow = document.getElementById('tlArrow');
   if (tlArrow) {
-    tlArrow.addEventListener('click', function() {
+    tlArrow.addEventListener('click', function(e) {
+      e.preventDefault();
+      var scrollY = window.scrollY;
       var tl = document.getElementById('throughline');
       var isOpen = tl.classList.toggle('open');
       tlArrow.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+      window.scrollTo({ top: scrollY, behavior: 'instant' });
     });
   }
 
   // Toggle expand
   function toggle(id) {
+    var scrollY = window.scrollY;
     var el = document.getElementById(id);
     var isOpen = el.classList.contains('open');
     ['s1','s2','s3'].forEach(function(s) {
@@ -714,7 +753,6 @@ print(<span style="color:#6a9fb5;">f</span><span style="color:#8faa6e;">"Done. {
             var p = Math.min((now - t0) / dur, 1);
             var ease = 1 - Math.pow(1 - p, 4);
             var val = Math.round(ease * target);
-            // format large numbers with commas
             c.textContent = val >= 1000 ? val.toLocaleString() + suffix : val + suffix;
             if (p < 1) requestAnimationFrame(step);
           }
@@ -722,6 +760,7 @@ print(<span style="color:#6a9fb5;">f</span><span style="color:#8faa6e;">"Done. {
         });
       }, 350);
     }
+    window.scrollTo({ top: scrollY, behavior: 'instant' });
   }
 </script>
 </body>
