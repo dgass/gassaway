@@ -725,23 +725,64 @@ print(<span style="color:#6a9fb5;">f</span><span style="color:#8faa6e;">"Done. {
   if (tlArrow) {
     tlArrow.addEventListener('click', function(e) {
       e.preventDefault();
-      var scrollY = window.scrollY;
       var tl = document.getElementById('throughline');
-      var isOpen = tl.classList.toggle('open');
-      tlArrow.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
-      window.scrollTo({ top: scrollY, behavior: 'instant' });
+      var isOpen = tl.classList.contains('open');
+
+      // Was any work section open?
+      var hadOpen = ['s1','s2','s3'].some(function(s) {
+        var el = document.getElementById(s);
+        return el && el.classList.contains('open');
+      });
+
+      // Step 1: close any open work section
+      ['s1','s2','s3'].forEach(function(s) {
+        var el = document.getElementById(s);
+        if (el) el.classList.remove('open');
+      });
+
+      // Clicking an already-open throughline just closes it
+      if (isOpen) {
+        tl.classList.remove('open');
+        tlArrow.setAttribute('aria-expanded', 'false');
+        return;
+      }
+
+      // Step 2: open the throughline after the close finishes
+      var delay = hadOpen ? 800 : 0;
+      setTimeout(function() {
+        tl.classList.add('open');
+        tlArrow.setAttribute('aria-expanded', 'true');
+      }, delay);
     });
   }
 
   // Toggle expand
   function toggle(id) {
-    var scrollY = window.scrollY;
     var el = document.getElementById(id);
     var isOpen = el.classList.contains('open');
+    var tl = document.getElementById('throughline');
+    var tlArrow = document.getElementById('tlArrow');
+
+    // Was any other section (or the throughline) open?
+    var hadOpen = ['s1','s2','s3'].some(function(s) {
+      return s !== id && document.getElementById(s).classList.contains('open');
+    }) || (tl && tl.classList.contains('open'));
+
+    // Step 1: close whatever is open
     ['s1','s2','s3'].forEach(function(s) {
       document.getElementById(s).classList.remove('open');
     });
-    if (!isOpen) {
+    if (tl) tl.classList.remove('open');
+    if (tlArrow) tlArrow.setAttribute('aria-expanded', 'false');
+
+    // Clicking an already-open section just closes it
+    if (isOpen) return;
+
+    // Step 2: open the clicked section — wait for the close to finish first
+    var delay = hadOpen ? 800 : 0;
+    setTimeout(openSection, delay);
+
+    function openSection() {
       el.classList.add('open');
       // Count up stats
       setTimeout(function() {
@@ -760,7 +801,6 @@ print(<span style="color:#6a9fb5;">f</span><span style="color:#8faa6e;">"Done. {
         });
       }, 350);
     }
-    window.scrollTo({ top: scrollY, behavior: 'instant' });
   }
 </script>
 </body>
